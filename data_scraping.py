@@ -39,20 +39,17 @@ df['Employees'] = df['Employees'].astype(int)
 df['Headquarters'] = df['Headquarters'].astype(str)
 print(df.dtypes)
 
-
 mydb = mysql.connector.connect(
-    host="localhost",
+    host="127.0.0.1",
     user="root",
-    password="tQCjrTo-V!ftQnjxC9Yb",
-    database="soraka"
+    passwd="tQCjrTo-V!ftQnjxC9Yb"
 )
 
 print(mydb)
 
-# Example usage:
 if __name__ == "__main__":
     print("first check")
-    engine = create_engine('mysql+mysqlconnector://root:tQCjrTo-V!ftQnjxC9Yb@localhost:3306/soraka')
+    engine = create_engine('mysql+mysqlconnector://root:tQCjrTo-V!ftQnjxC9Yb@127.0.0.1:3306/soraka')
     print("Second check")
     try:
         df.to_sql('scraped_data', con=engine, if_exists='replace', index=False)
