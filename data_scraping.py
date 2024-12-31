@@ -1,5 +1,6 @@
 # Practice scrapping
 
+import mysql.connector
 from bs4 import BeautifulSoup
 import requests
 import pandas as pd
@@ -40,7 +41,4 @@ if __name__ == "__main__":
         for row in rows:
             print(row)
 
-        connection.close()
-
-
-
+        connection.close() 
