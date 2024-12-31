@@ -3,6 +3,7 @@
 from bs4 import BeautifulSoup
 import requests
 import pandas as pd
+from database_operations import insert_df_to_mysql, fetch_all_rows
 
 # Scraping table
 url = 'https://en.wikipedia.org/wiki/List_of_largest_companies_in_the_United_States_by_revenue'
@@ -26,4 +27,20 @@ for row in column_data[1:]:
     length = len(df)
     df.loc[length] = individual_row_data
 
-print(df)
+# Example usage:
+if __name__ == "__main__":
+    connection = create_connection()
+    if connection:
+        # Example: Insert df
+        insert_df_to_mysql(df, "scraped_data")
+
+        # Example: Fetch data
+        select_query = "SELECT * FROM scraped_data"
+        rows = fetch_all_rows(connection, select_query)
+        for row in rows:
+            print(row)
+
+        connection.close()
+
+
+
