@@ -12,7 +12,8 @@ def create_connection():
             host="localhost",  
             user="root",
             password="tQCjrTo-V!ftQnjxC9Yb",
-            database="soraka"
+            database="soraka",
+            port=3306 
         )
         print("Database connection successful.")
         return connection
@@ -73,52 +74,43 @@ def insert_data(connection, query, data):
     except mysql.connector.Error as error:
         print(f"Error inserting data: {error}")
 
-def insert_df_to_mysql(df, table_name):
-    """
-    Inserts data from a pandas DataFrame into a MySQL table.
+def insert_df_to_mysql(connection, table_name, df):
+  """
+  Inserts data from a pandas DataFrame into a MySQL table. 
+  Drops and recreates the table before inserting data.
 
-    Args:
-        df: The pandas DataFrame containing the data to insert.
-        table_name: The name of the MySQL table.
-        host: The hostname of the MySQL server.
-        user: The MySQL username.
-        password: The MySQL password.
-        database: The name of the MySQL database.
-    """
+  Args:
+      df: The pandas DataFrame containing the data to insert.
+      table_name: The name of the MySQL table.
+      connection: The established database connection object.
+  """
+  try:
+      cursor = connection.cursor()
 
-    try:
-        # Connect to the MySQL database
-        cnx = mysql.connector.connect(
-            host="localhost",  
-            user="root",
-            password="tQCjrTo-V!ftQnjxC9Yb",
-            database="soraka"
-        )
+      # Drop the table if it exists
+      drop_table_query = f"DROP TABLE IF EXISTS {table_name}"
+      cursor.execute(drop_table_query)
 
-        # Create a cursor object
-        cursor = cnx.cursor()
+      # Create the table based on DataFrame columns
+      create_table_query = f"CREATE TABLE {table_name} ("
+      for col in df.columns:
+          create_table_query += f"`{col}` {df[col].dtype}," 
+      create_table_query = create_table_query[:-1] + ")"  # Remove trailing comma
+      cursor.execute(create_table_query)
 
-        # Get column names from the DataFrame
-        cols = ','.join(df.columns)
+      # Insert data from DataFrame
+      for index, row in df.iterrows():
+          insert_query = f"INSERT INTO {table_name} ({','.join(df.columns)}) VALUES ({','.join(['%s'] * len(df.columns))})"
+          cursor.execute(insert_query, tuple(row))
 
-        # Prepare the SQL INSERT statement with placeholders
-        sql = "INSERT INTO {} ({}) VALUES (%s," * (len(df.columns) - 1) + "%s)".format(table_name, cols)
+      connection.commit()
+      print(f"Data inserted successfully into {table_name}")
 
-        # Insert data in batches for efficiency
-        rows = df.to_numpy().tolist()
-        for i in range(0, len(rows), 1000):  # Insert in batches of 1000 rows
-            cursor.executemany(sql, rows[i:i+1000])
+  except mysql.connector.Error as error:
+      print(f"Error inserting data: {error}")
+  finally:
+      if cursor:
+          cursor.close()
 
-        # Commit the changes
-        cnx.commit()
 
-        print(f"Successfully inserted {len(df)} rows into {table_name}")
-
-    except mysql.connector.Error as error:
-        print(f"Error inserting data: {error}")
-    finally:
-        # Close the connection
-        if cnx:
-            cursor.close()
-            cnx.close()
 

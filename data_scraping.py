@@ -1,10 +1,8 @@
-# Practice scrapping
-
-import mysql.connector
 from bs4 import BeautifulSoup
 import requests
 import pandas as pd
-from database_operations import create_connection, insert_df_to_mysql, fetch_all_rows
+from sqlalchemy import create_engine
+import mysql.connector
 
 # Scraping table
 url = 'https://en.wikipedia.org/wiki/List_of_largest_companies_in_the_United_States_by_revenue'
@@ -28,17 +26,36 @@ for row in column_data[1:]:
     length = len(df)
     df.loc[length] = individual_row_data
 
+# Remove commas using string replacement
+df['Revenue (USD millions)'] = df['Revenue (USD millions)'].str.replace(',', '')
+df['Revenue growth'] = df['Revenue growth'].str.replace('%', '')
+df['Employees'] = df['Employees'].str.replace(',', '')
+df['Rank'] = df['Rank'].astype(int)
+df['Name'] = df['Name'].astype(str)
+df['Industry'] = df['Industry'].astype(str)
+df['Revenue (USD millions)'] = df['Revenue (USD millions)'].astype(int)
+df['Revenue growth'] = df['Revenue growth'].astype(float)
+df['Employees'] = df['Employees'].astype(int)
+df['Headquarters'] = df['Headquarters'].astype(str)
+print(df.dtypes)
+
+
+mydb = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="tQCjrTo-V!ftQnjxC9Yb",
+    database="soraka"
+)
+
+print(mydb)
+
 # Example usage:
 if __name__ == "__main__":
-    connection = create_connection()
-    if connection:
-        # Example: Insert df
-        insert_df_to_mysql(df, "scraped_data")
-
-        # Example: Fetch data
-        select_query = "SELECT * FROM scraped_data"
-        rows = fetch_all_rows(connection, select_query)
-        for row in rows:
-            print(row)
-
-        connection.close() 
+    print("first check")
+    engine = create_engine('mysql+mysqlconnector://root:tQCjrTo-V!ftQnjxC9Yb@localhost:3306/soraka')
+    print("Second check")
+    try:
+        df.to_sql('scraped_data', con=engine, if_exists='replace', index=False)
+        print("Table 'scraped_data' created successfully in MySQL.")
+    except Exception as e:
+        print(f"Error writing to MySQL: {e}")
