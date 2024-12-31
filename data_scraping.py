@@ -3,7 +3,7 @@
 from bs4 import BeautifulSoup
 import requests
 import pandas as pd
-from database_operations import insert_df_to_mysql, fetch_all_rows
+from database_operations import create_connection, insert_df_to_mysql, fetch_all_rows
 
 # Scraping table
 url = 'https://en.wikipedia.org/wiki/List_of_largest_companies_in_the_United_States_by_revenue'
