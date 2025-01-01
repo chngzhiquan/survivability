@@ -1,8 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 import pandas as pd
-from sqlalchemy import create_engine
-import mysql.connector
+from utils import copy_from
 
 # Scraping table
 url = 'https://en.wikipedia.org/wiki/List_of_largest_companies_in_the_United_States_by_revenue'
@@ -39,20 +38,4 @@ df['Employees'] = df['Employees'].astype(int)
 df['Headquarters'] = df['Headquarters'].astype(str)
 print(df.dtypes)
 
-mydb = mysql.connector.connect(
-    host="127.0.0.1",
-    user="root",
-    passwd="tQCjrTo-V!ftQnjxC9Yb"
-)
-
-print(mydb)
-
-if __name__ == "__main__":
-    print("first check")
-    engine = create_engine('mysql+mysqlconnector://root:tQCjrTo-V!ftQnjxC9Yb@127.0.0.1:3306/soraka')
-    print("Second check")
-    try:
-        df.to_sql('scraped_data', con=engine, if_exists='replace', index=False)
-        print("Table 'scraped_data' created successfully in MySQL.")
-    except Exception as e:
-        print(f"Error writing to MySQL: {e}")
+copy_from(df, 'scraped_data')
